@@ -1,10 +1,16 @@
 ##################################################################
+
 # RPI WAGO Installation script
 ##################################################################
-# Set TestRun - Copies packages and directories from ~/Downloads
-# Instead of downloading from official sites. 
-##################################################################
-TR="N"
+
+###################################################################
+###################################################################
+# !!!Run this script under dos2unix and install ca-certificates.!!!
+# sudo apt install libntirpc-dev
+###################################################################
+###################################################################
+
+
 
 ##################################################################
 # Conditionals for installing or skipping several packages
@@ -38,6 +44,8 @@ EPICS_BASE=base-7.0.7
 ##################################################################
 EPICS_BASE_ARH=$EPICS_BASE.tar.gz
 
+DWNDIR=/home/mbeldis/Downloads
+
 echo "##################################################################"
 echo "EPICS_BASE = $EPICS_BASE"
 echo "EPICS_BASE_ARH = $EPICS_BASE_ARH"
@@ -49,22 +57,17 @@ echo "##################################################################"
 if [ "$SKIP_BASE" != "Y" ]
 then
 
-# Download EPICS BASE
-echo "Downloading EPICS BASE $EPICS_BASE_ARH"
-if [ $TR = "Y" ]
+# Check Base exist in current dir
+if [ -d "$EPICS_BASE" ];
 then
-cp /home/mbeldis/Downloads/$EPICS_BASE_ARH .
+echo "$EPICS_BASE is in a Root DIR"
 else
-wget https://epics.anl.gov/download/base/base-7.0.7.tar.gz
+# copy from Downloads
+echo "Copying from Downloads"
+DN_EPICS_BASE=$DWNDIR/$EPICS_BASE
+echo $DN_EPICS_BASE
+cp -r $DN_EPICS_BASE .
 fi
-
-# extract EPICS base
-echo "Extracting EPICS BASE $EPICS_BASE_ARH"
-####tar zxvf $EPICS_BASE_ARH > /dev/null
-
-# Remove EPICS base archive
-echo "Removing EPICS BASE ARCHIVE $EPICS_BASE_ARH"
-rm  $EPICS_BASE_ARH
 
 # Make link base to base.version
 echo "Linking $EPICS_BASE to base"
@@ -75,7 +78,7 @@ echo "Compiling EPICS_BASE "
 cd base
 make
 cd ..
-#pwd
+pwd
 fi
 ## if [ "$SKIP_BASE" != "Y" ]
 
@@ -86,18 +89,25 @@ fi
 if [ "$SKIP_ASYN" != "Y" ]
 then
 
-# Download Asyn
-echo "Downloading ASYN"
-if [ $TR = "Y" ]
+# Check asyn exists in current dir
+if [ -d "asyn" ];
 then
-cp -rf /home/mbeldis/Downloads/asyn .
+echo "asyn is in a Root DIR"
 else
+# Clone Asyn
+echo "Cloning ASYN"
 git clone https://github.com/epics-modules/asyn.git
 fi
 
 # Update configure/RELEASE file
 echo "Updating configure/RELEASE file"
-cp releases/asyn_RELEASE ./asyn/configure/RELEASE 
+cp releases/asyn_RELEASE ./asyn/configure/RELEASE
+
+# Update configure/CONFIG_SITE file
+echo "Updating configure/CONFIG_SITE file"
+cp releases/asyn_CONFIG_SITE ./asyn/configure/CONFIG_SITE
+
+
 
 # Compile Asyn
 echo "Compiling asyn "
@@ -114,26 +124,23 @@ fi
 if [ "$SKIP_STREAM" != "Y" ]
 then
 
-# Download STREAM
-echo "Downloading STREAM"
-if [ $TR = "Y" ]
+# Check StreamDevice exists in current dir
+if [ -d "StreamDevice" ];
 then
-cp -rf /home/mbeldis/Downloads/stream .
+echo "StreamDevice is in a Root DIR"
 else
-git clone https://github.com/epics-modules/stream.git
+# Clone StreamDevice
+echo "Cloning StreamDevice"
+git clone https://github.com/paulscherrerinstitute/StreamDevice.git
 fi
-cd stream
-git submodule init
-git submodule update
-cd ..
 
 # Update configure/RELEASE file
 echo "Updating configure/RELEASE file"
-cp releases/stream_RELEASE ./stream/configure/RELEASE 
+cp releases/stream_RELEASE ./StreamDevice/configure/RELEASE 
 
-# Compile STREAM
-echo "Compiling stream "
-cd stream
+# Compile StreamDevice
+echo "Compiling StreamDevice "
+cd StreamDevice
 make
 cd ..
 #pwd
@@ -146,12 +153,13 @@ fi
 if [ "$SKIP_MODBUS" != "Y" ]
 then
 
-# Download MODBUS
-echo "Downloading MODBUS"
-if [ $TR = "Y" ]
+# Check modbus exists in current dir
+if [ -d "modbus" ];
 then
-cp -rf /home/mbeldis/Downloads/modbus .
+echo "modbus is in a Root DIR"
 else
+# Clone modbus
+echo "Cloning modbus"
 git clone https://github.com/epics-modules/modbus.git
 fi
 
@@ -181,12 +189,18 @@ then
 mkdir -p apps
 cd apps
 
-# Download RPI-WAGO
-echo "Downloading - rpi-wago"
-if [ $TR = "Y" ]
+# Check rpi-wago exists in apps dir
+if [ -d "rpi-wago" ];
 then
-cp -rf /home/mbeldis/Downloads/rpi-wago .
+echo "rpi-wago is in apps DIR"
+elif [ -d $DWNDIR/rpi-wago ]
+then
+# copy from Downloads
+echo "Copying rpi-wago from Downloads"
+cp -r $DWNDIR/rpi-wago .
 else
+# Clone rpi-wago
+echo "Cloning rpi-wago"
 git clone git@git.ccfe.ac.uk:mbeldis/rpi-wago.git
 fi
 
